@@ -2,6 +2,7 @@ import std/strformat
 
 # expected to be RGBA
 type Pixel* = array[4, uint8]
+type Color* = Pixel
 
 # W, H: static[int] declares W and H to be integer type parameters which must be constant
 # expressions. The latter is enforced via static[]. Note that the image is stored row-major
@@ -10,8 +11,14 @@ type Pixel* = array[4, uint8]
 # into (col, row)
 type Image*[W, H: static[uint]] = array[H, array[W, Pixel]]
 
+# this has to come before so overloaded variants can find this underlying implementation
 proc set_pixel*(image: var Image, x: uint16, y: uint16, pixel: Pixel): void = 
   image[y][x] = pixel
+
+proc set_pixel*(image: var Image, x: int, y: int, pixel: Pixel): void = 
+  let xx = (if x < 0: 0u16 else: x.uint16)
+  let yy = (if y < 0: 0u16 else: y.uint16)
+  set_pixel(image, xx, yy, pixel)
 
 proc write_image*(image: Image, output_path: string): void =
   let out_fh = io.open(output_path, FileMode.fmWrite)
