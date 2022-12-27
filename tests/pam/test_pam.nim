@@ -1,4 +1,4 @@
-import ../src/pam
+import ../../src/pam
 
 # nim 0-init's all storage, so now we have a bunch of 0s
 const width = 128
