@@ -13,11 +13,13 @@ type Image*[W, H: static[uint]] = array[H, array[W, Pixel]]
 
 # this has to come before so overloaded variants can find this underlying implementation
 proc set_pixel*(image: var Image, x: uint16, y: uint16, pixel: Pixel): void = 
-  image[y][x] = pixel
+  let px = min(high(image[0]).uint16, x)
+  let py = min(high(image).uint16, y)
+  image[py][px] = pixel
 
 proc set_pixel*(image: var Image, x: int, y: int, pixel: Pixel): void = 
-  let xx = (if x < 0: 0u16 else: x.uint16)
-  let yy = (if y < 0: 0u16 else: y.uint16)
+  let xx = max(0, x).uint16
+  let yy = max(0, y).uint16
   set_pixel(image, xx, yy, pixel)
 
 proc write_image*(image: Image, output_path: string): void =
