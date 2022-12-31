@@ -2,9 +2,9 @@ import std/strutils
 import std/strscans
 import std/strformat
 
-type ParsingDefect = object of Defect
+import types
 
-type Vec[L:static[uint], T] = array[L, T]
+type ParsingDefect = object of Defect
 
 # geometry vertex
 type V* = Vec[3, float]
