@@ -163,8 +163,6 @@ proc triangle*(image: var Image, a, b, c: Vec3f, zbuffer: var ZBuffer, ta, tb, t
   let miny = min(a2d[1], b2d[1]).min(c2d[1])
   let maxy = max(a2d[1], b2d[1]).max(c2d[1])
 
-  let did_draw: bool = false
-
   for x in minx..maxx:
     for y in miny..maxy:
       let p: Vec2i = [x, y]
