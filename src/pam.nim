@@ -58,7 +58,7 @@ proc write*(image: Image, output_path: string): void =
   # Alias for write_image
   write_image(image, output_path)
 
-proc open_image*(input_path: string): Texture =
+proc load_texture*(input_path: string): Texture =
   let fh = io.open(input_path)
   defer: io.close(fh)
 

@@ -18,5 +18,5 @@ pam.set_pixel(im, width div 2, height div 2, [0u8, 0, 255, 255])
 # to view the image: convert /tmp/test.pam /tmp/test.png && open /tmp/test.png
 pam.write_image(im, "/tmp/test.pam")
 
-let texture = pam.open_image("data/african_head.pam")
+let texture = load_texture("data/african_head.pam")
 assert texture[0][0] == [0x58u8, 0x45, 0x37, 255]
