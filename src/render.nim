@@ -3,17 +3,17 @@ import types
 
 proc hline(x0, y0, x1: int, image: var Image, color: Color): void =
   # simple horizontal line from (x0, y0) to (x1, y0).
-  let nx0 = (if x0 < x1: x0 else: x1)
-  let nx1 = (if x0 < x1: x1 else: x0)
+  let minx = min(x0, x1)
+  let maxx = max(x0, x1)
 
-  for x in countup(x0, x1):
+  for x in countup(minx, maxx):
     set_pixel(image, x, y0, color)
 
 proc vline(x0, y0, y1: int, image: var Image, color: Color): void =
   # simple vertical line from (x0, y0) to (x0, y1).
-  let ny0 = (if y0 < y1: y0 else: y1)
-  let ny1 = (if y0 < y1: y1 else: y0)
-  for y in countup(ny0, ny1):
+  let miny = min(y0, y1)
+  let maxy = max(y0, y1)
+  for y in countup(miny, maxy):
     set_pixel(image, x0, y, color)
 
 proc line*(x0, y0, x1, y1: int, image: var Image, color: Color): void =
@@ -112,7 +112,10 @@ proc line*(x0, y0, x1, y1: int, image: var Image, color: Color): void =
 
       error -= 2 * ndx
 
-proc barycentric2d(p: Vec[2, int], a, b, c: Vec[2, int]): Vec[3, float] = 
+proc line*(a, b,: Vec2i, image: var Image, color: Color): void =
+  line(a[0], a[1], b[0], b[1], image, color)
+
+proc barycentric2d(p: Vec2i, a, b, c: Vec2i): Vec3f =
   # based on
   # https://en.wikipedia.org/wiki/Barycentric_coordinate_system#Barycentric_coordinates_on_triangles
   let x = p[0]
@@ -133,7 +136,7 @@ proc barycentric2d(p: Vec[2, int], a, b, c: Vec[2, int]): Vec[3, float] =
 
   return [lambda1, lambda2, lambda3]
 
-proc is_inside2d*(p: Vec[2, int], a, b, c: Vec[2, int]): bool = 
+proc is_inside2d*(p, a, b, c: Vec2i): bool =
   let bcoords = barycentric2d(p, a, b, c)
 
   for c in bcoords:
@@ -141,3 +144,19 @@ proc is_inside2d*(p: Vec[2, int], a, b, c: Vec[2, int]): bool =
       return false
 
   return true
+
+proc triangle*(a, b, c: Vec2i, image: var Image, color: Color): void =
+  # compute the bounding box, sweep each pixel in the bounding box and  and use is_inside2d
+  # to determine if the pixel is inside or out. If inside, fill it with color, otherwise
+  # do nothing
+  let minx = min(a[0], b[0]).min(c[0])
+  let maxx = max(a[0], b[0]).max(c[0])
+
+  let miny = min(a[1], b[1]).min(c[1])
+  let maxy = max(a[1], b[1]).max(c[1])
+
+  for x in minx..maxx:
+    for y in miny..maxy:
+      let p: Vec2i = [x, y]
+      if is_inside2d(p, a, b, c):
+        image.set_pixel(x, y, color)
