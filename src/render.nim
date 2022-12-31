@@ -1,4 +1,5 @@
 import pam
+import types
 
 proc hline(x0, y0, x1: int, image: var Image, color: Color): void =
   # simple horizontal line from (x0, y0) to (x1, y0).
@@ -110,3 +111,33 @@ proc line*(x0, y0, x1, y1: int, image: var Image, color: Color): void =
       set_pixel(image, x, y, color)
 
       error -= 2 * ndx
+
+proc barycentric2d(p: Vec[2, int], a, b, c: Vec[2, int]): Vec[3, float] = 
+  # based on
+  # https://en.wikipedia.org/wiki/Barycentric_coordinate_system#Barycentric_coordinates_on_triangles
+  let x = p[0]
+  let y = p[1]
+
+  let x1 = a[0]
+  let y1 = a[1]
+  let x2 = b[0]
+  let y2 = b[1]
+  let x3 = c[0]
+  let y3 = c[1]
+
+  let detT = (y2 - y3) * (x1 - x3) + (x3 - x2) * (y1 - y3)
+
+  let lambda1 = ((y2 - y3) * (x - x3) + (x3 - x2) * (y - y3)) / detT
+  let lambda2 = ((y3 - y1) * (x - x3) + (x1 - x3) * (y - y3)) / detT
+  let lambda3 = 1 - lambda1 - lambda2
+
+  return [lambda1, lambda2, lambda3]
+
+proc is_inside2d*(p: Vec[2, int], a, b, c: Vec[2, int]): bool = 
+  let bcoords = barycentric2d(p, a, b, c)
+
+  for c in bcoords:
+    if c < 0:
+      return false
+
+  return true
