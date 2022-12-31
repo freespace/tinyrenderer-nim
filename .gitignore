@@ -1,12 +1,9 @@
 # ignore all files without extensions
-*
-!/**/
-!*.*
-
 megatest*
 *.png
 *.swp
 nimcache/
 build/
 outputs/
+.DS_Store
 
