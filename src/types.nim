@@ -12,11 +12,24 @@ type Color* = Pixel
 type Image*[W, H: static[uint]] = array[H, array[W, Pixel]]
 type ZBuffer*[W, H: static[uint]] = array[H, array[W, float]]
 
+# texture is like image, but with run-time size information
+type Texture* = seq[seq[array[4, uint8]]]
+
 type Vec*[L:static[uint], T] = array[L, T]
 
 type Vec2i* = Vec[2, int]
 type Vec3f* = Vec[3, float]
 type Vec2f* = Vec[2, float]
+
+proc init*(image: var Image): void =
+  for y in 0..high(image):
+    for x in 0..high(image[0]):
+      image[y][x] = [0u8, 0, 0, 0]
+
+proc init*(buffer: var ZBuffer): void =
+  for y in 0..high(buffer):
+    for x in 0..high(buffer[0]):
+      buffer[y][x] = low(float)
 
 proc cross*(a, b: Vec3f): Vec3f =
   let a1 = a[0]
@@ -53,3 +66,6 @@ proc `-`*(a: Vec3f): Vec3f =
 
 proc `-`*(a, b: Vec3f): Vec3f =
   return a + (-b)
+
+proc asVec2i*(a: Vec3f): Vec2i =
+  return [a[0].int, a[1].int]
