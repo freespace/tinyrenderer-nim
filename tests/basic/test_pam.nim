@@ -1,9 +1,10 @@
 import ../../src/pam
+import ../../src/types
 
 # nim 0-init's all storage, so now we have a bunch of 0s
 const width = 128
 const height = 64
-var im: pam.Image[width, height]
+var im: Image[width, height]
 
 # origin at bottom left is red
 pam.set_pixel(im, 0, 0, [255u8, 0, 0, 255])
@@ -16,3 +17,6 @@ pam.set_pixel(im, width div 2, height div 2, [0u8, 0, 255, 255])
 
 # to view the image: convert /tmp/test.pam /tmp/test.png && open /tmp/test.png
 pam.write_image(im, "/tmp/test.pam")
+
+let texture = pam.open_image("data/african_head.pam")
+assert texture[0][0] == [0x58u8, 0x45, 0x37, 255]
