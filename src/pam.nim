@@ -59,3 +59,6 @@ proc write_image*(image: Image, output_path: string): void =
 
   io.close(out_fh)
 
+proc write*(image: Image, output_path: string): void = 
+  # Alias for write_image
+  write_image(image, output_path)

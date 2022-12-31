@@ -7,10 +7,10 @@ import types
 type ParsingDefect = object of Defect
 
 # geometry vertex
-type V* = Vec[3, float]
+type V* = Vec3f
 
 # texture vertex
-type VT* = Vec[2, float]
+type VT* = Vec2f
 
 type Face* = ref object
   # these are indices into the containing model's
