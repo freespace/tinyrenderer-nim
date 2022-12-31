@@ -23,6 +23,7 @@ type Model* = ref object
   faces*: seq[Face]
   v*: seq[V]
   vt*: seq[VT]
+  max_v*: float
 
 proc load_model*(obj_path: string): Model =
   let fh = open(obj_path)
@@ -38,6 +39,7 @@ proc load_model*(obj_path: string): Model =
       var x, y, z: float
       if scanf(linebuf, "v $s$f $f $f", x, y, z):
         model.v.add([x, y, z])
+        model.max_v = max(model.max_v, x.abs).max(y.abs).max(z.abs)
       else:
         raise newException(ParsingDefect, &"Failed to parse {linebuf}")
     elif linebuf.startsWith("vt "):
