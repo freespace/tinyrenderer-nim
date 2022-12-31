@@ -1,7 +1,7 @@
 import pam
 import types
 
-proc hline(x0, y0, x1: int, image: var Image, color: Color): void =
+proc hline(image: var Image, x0, y0, x1: int, color: Color): void =
   # simple horizontal line from (x0, y0) to (x1, y0).
   let minx = min(x0, x1)
   let maxx = max(x0, x1)
@@ -9,14 +9,14 @@ proc hline(x0, y0, x1: int, image: var Image, color: Color): void =
   for x in countup(minx, maxx):
     set_pixel(image, x, y0, color)
 
-proc vline(x0, y0, y1: int, image: var Image, color: Color): void =
+proc vline(image: var Image, x0, y0, y1: int,color: Color): void =
   # simple vertical line from (x0, y0) to (x0, y1).
   let miny = min(y0, y1)
   let maxy = max(y0, y1)
   for y in countup(miny, maxy):
     set_pixel(image, x0, y, color)
 
-proc line*(x0, y0, x1, y1: int, image: var Image, color: Color): void =
+proc line*(image: var Image, x0, y0, x1, y1: int, color: Color): void =
   # We want to avoid floating point ops, and we shouldn't need it, because we know
   # at least we need pixel coordinates to go from x0 and x1 in steps of 1, and similarly
   # from y0 to y1 in steps of 1.
@@ -112,7 +112,7 @@ proc line*(x0, y0, x1, y1: int, image: var Image, color: Color): void =
 
       error -= 2 * ndx
 
-proc line*(a, b,: Vec2i, image: var Image, color: Color): void =
+proc line*(image: var Image, a, b,: Vec2i, color: Color): void =
   line(a[0], a[1], b[0], b[1], image, color)
 
 proc barycentric2d(p: Vec2i, a, b, c: Vec2i): Vec3f =
@@ -145,7 +145,7 @@ proc is_inside2d*(p, a, b, c: Vec2i): bool =
 
   return true
 
-proc triangle*(a, b, c: Vec2i, image: var Image, color: Color): void =
+proc triangle*(image: var Image, a, b, c: Vec2i, color: Color): void =
   # compute the bounding box, sweep each pixel in the bounding box and  and use is_inside2d
   # to determine if the pixel is inside or out. If inside, fill it with color, otherwise
   # do nothing
