@@ -4,8 +4,9 @@
 !*.*
 
 megatest*
-*.pam
 *.png
 *.swp
 nimcache/
+build/
+outputs/
 
