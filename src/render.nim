@@ -7,14 +7,14 @@ proc hline(image: var Image, x0, y0, x1: int, color: Color): void =
   let maxx = max(x0, x1)
 
   for x in countup(minx, maxx):
-    set_pixel(image, x, y0, color)
+    image.set_pixel(x, y0, color)
 
 proc vline(image: var Image, x0, y0, y1: int,color: Color): void =
   # simple vertical line from (x0, y0) to (x0, y1).
   let miny = min(y0, y1)
   let maxy = max(y0, y1)
   for y in countup(miny, maxy):
-    set_pixel(image, x0, y, color)
+    image.set_pixel(x0, y, color)
 
 proc line*(image: var Image, x0, y0, x1, y1: int, color: Color): void =
   # We want to avoid floating point ops, and we shouldn't need it, because we know
@@ -29,11 +29,11 @@ proc line*(image: var Image, x0, y0, x1, y1: int, color: Color): void =
   #   - we want consistent drawing direction so the maths is always increasing
 
   if x1 == x0:
-    vline(x0, y0, y1, image, color)
+    image.vline(x0, y0, y1, color)
     return
 
   if y1 == y0:
-    hline(x0, y0, x1, image, color)
+    image.hline(x0, y0, x1, color)
     return
 
   let dx = x1 - x0
@@ -113,7 +113,7 @@ proc line*(image: var Image, x0, y0, x1, y1: int, color: Color): void =
       error -= 2 * ndx
 
 proc line*(image: var Image, a, b,: Vec2i, color: Color): void =
-  line(a[0], a[1], b[0], b[1], image, color)
+  image.line(a[0], a[1], b[0], b[1], color)
 
 proc barycentric2d(p: Vec2i, a, b, c: Vec2i): Vec3f =
   # based on
@@ -137,7 +137,7 @@ proc barycentric2d(p: Vec2i, a, b, c: Vec2i): Vec3f =
   return [lambda1, lambda2, lambda3]
 
 proc is_inside2d*(p, a, b, c: Vec2i): bool =
-  let bcoords = barycentric2d(p, a, b, c)
+  let bcoords: array[3, float] = barycentric2d(p, a, b, c)
 
   for idx in 0..high(bcoords):
     if bcoords[idx] < 0:
@@ -145,7 +145,49 @@ proc is_inside2d*(p, a, b, c: Vec2i): bool =
 
   return true
 
+proc triangle*(image: var Image, a, b, c: Vec3f, zbuffer: var ZBuffer, color: Color): void =
+  # a, b and c should be in screen coordinates
+
+  let a2d = a.asVec2i()
+  let b2d = b.asVec2i()
+  let c2d = c.asVec2i()
+
+
+  # compute the bounding box, sweep each pixel in the bounding box and  and use is_inside2d
+  # to determine if the pixel is inside or out. If inside, fill it with color, otherwise
+  # do nothing
+  let minx = min(a2d[0], b2d[0]).min(c2d[0])
+  let maxx = max(a2d[0], b2d[0]).max(c2d[0])
+
+  let miny = min(a2d[1], b2d[1]).min(c2d[1])
+  let maxy = max(a2d[1], b2d[1]).max(c2d[1])
+
+  let did_draw: bool = false
+
+  for x in minx..maxx:
+    for y in miny..maxy:
+      let p: Vec2i = [x, y]
+      let bc_coords = barycentric2d(p, a2d, b2d, c2d)
+      let is_inside: bool = bc_coords[0] >= 0 and bc_coords[1] >= 0 and bc_coords[2] >= 0
+      if is_inside:
+
+        # interpolate the z coordinate using the barycentric as weights
+        let z = bc_coords[0] * a[2].float + bc_coords[1] * b[2].float + bc_coords[2] * c[2].float
+
+        # if there is nothing "in front" of us, draw the pixel. This implies Z gets bigger
+        # TOWARDS the user, i.e. -z is into the screen, positive z is out of the screen
+        if zbuffer[y][x] < z:
+          zbuffer[y][x] = z
+          image.set_pixel(x, y, color)
+
 proc triangle*(image: var Image, a, b, c: Vec2i, color: Color): void =
+  # a, b and c should be in screen coordinates
+  # explicitly draw the boundary b/c the is-inside function might behave funny around the
+  # boundary due to floating point errors
+  image.line(a, b, color)
+  image.line(a, c, color)
+  image.line(b, c, color)
+
   # compute the bounding box, sweep each pixel in the bounding box and  and use is_inside2d
   # to determine if the pixel is inside or out. If inside, fill it with color, otherwise
   # do nothing

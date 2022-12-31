@@ -1,5 +1,3 @@
-import std/random
-
 import pam
 import render
 import types
@@ -33,14 +31,25 @@ proc to_screenspace(p: Vec3f): Vec2i =
 
   return [sx, sy]
 
+# this is model space which is -1..1
+let light_dir: Vec3f = [0.0, 0.0, -1]
+
 for face in model.faces:
   # assume all faces are triangles. Recall also that the obj file format uses
   # 1-indexing
-  let a = to_screenspace(model.v[face.v_idxes[0]-1])
-  let b = to_screenspace(model.v[face.v_idxes[1]-1])
-  let c = to_screenspace(model.v[face.v_idxes[2]-1])
+  let a = model.v[face.v_idxes[0]-1]
+  let b = model.v[face.v_idxes[1]-1]
+  let c = model.v[face.v_idxes[2]-1]
 
-  let color: Color = [rand(255).uint8, rand(255).uint8, rand(255).uint8, 255u8]
-  im2.triangle(a, b, c, color)
+  let sa = to_screenspace(a)
+  let sb = to_screenspace(b)
+  let sc = to_screenspace(c)
+
+  # compute triangle's normal by cross a-b and a-c
+  let normal = (c-a).cross(b-c).normalised()
+  let intensity = normal.dot(light_dir)
+  if intensity > 0:
+    let c = (intensity * 255).uint8
+    im2.triangle(sa, sb, sc, [c, c, c, 255])
 
 im2.write("outputs/lesson_02b.pam")
