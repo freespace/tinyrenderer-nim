@@ -145,8 +145,9 @@ proc is_inside2d*(p, a, b, c: Vec2i): bool =
 
   return true
 
-proc triangle*(image: var Image, a, b, c: Vec3f, zbuffer: var ZBuffer, color: Color): void =
+proc triangle*(image: var Image, a, b, c: Vec3f, zbuffer: var ZBuffer, ta, tb, tc: Vec2f, intensity: float, texture: Texture): void =
   # a, b and c should be in screen coordinates
+  # intensity is a number that specifies how well lit the triangle should be
 
   let a2d = a.asVec2i()
   let b2d = b.asVec2i()
@@ -163,6 +164,58 @@ proc triangle*(image: var Image, a, b, c: Vec3f, zbuffer: var ZBuffer, color: Co
   let maxy = max(a2d[1], b2d[1]).max(c2d[1])
 
   let did_draw: bool = false
+
+  for x in minx..maxx:
+    for y in miny..maxy:
+      let p: Vec2i = [x, y]
+      let bc_coords = barycentric2d(p, a2d, b2d, c2d)
+      let is_inside: bool = bc_coords[0] >= 0 and bc_coords[1] >= 0 and bc_coords[2] >= 0
+
+      if is_inside:
+        # interpolate the z coordinate using the barycentric as weights
+        let z = bc_coords[0] * a[2].float + bc_coords[1] * b[2].float + bc_coords[2] * c[2].float
+
+        # if there is nothing "in front" of us, draw the pixel. This implies Z gets bigger
+        # TOWARDS the user, i.e. -z is into the screen, positive z is out of the screen
+        if zbuffer[y][x] < z:
+          zbuffer[y][x] = z
+
+          # similarly interpolate the texture uv coordinates, which are 0..1
+          let u = bc_coords[0] * ta[0] + bc_coords[1] * tb[0] + bc_coords[2] * tc[0]
+          let v = bc_coords[0] * ta[1] + bc_coords[1] * tb[1] + bc_coords[2] * tc[1]
+
+          # turn them into texture x/y coordinate by multiplying by the texture's width and height
+          let tx = int(u * high(texture[0]).float)
+          let ty = int(v * high(texture).float)
+
+          # remember that we store rows, so first index index into the row, i.e. height
+          let r = texture[ty][tx][0].float * intensity
+          let g = texture[ty][tx][1].float * intensity
+          let b = texture[ty][tx][2].float * intensity
+
+          # do not scale opacity by lighting!
+          let alpha = texture[ty][tx][3]
+
+          let color: Color = [r.uint8, g.uint8, b.uint8, alpha.uint8]
+
+          image.set_pixel(x, y, color)
+
+proc triangle*(image: var Image, a, b, c: Vec3f, zbuffer: var ZBuffer, color: Color): void =
+  # a, b and c should be in screen coordinates
+
+  let a2d = a.asVec2i()
+  let b2d = b.asVec2i()
+  let c2d = c.asVec2i()
+
+
+  # compute the bounding box, sweep each pixel in the bounding box and  and use is_inside2d
+  # to determine if the pixel is inside or out. If inside, fill it with color, otherwise
+  # do nothing
+  let minx = min(a2d[0], b2d[0]).min(c2d[0])
+  let maxx = max(a2d[0], b2d[0]).max(c2d[0])
+
+  let miny = min(a2d[1], b2d[1]).min(c2d[1])
+  let maxy = max(a2d[1], b2d[1]).max(c2d[1])
 
   for x in minx..maxx:
     for y in miny..maxy:

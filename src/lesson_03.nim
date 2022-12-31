@@ -21,8 +21,9 @@ proc to_screenspace(p: Vec3f): Vec3f =
   # leave z untouched
   return [sx, sy, p[2]]
 
-# this is model space which is -1..1
-let light_dir: Vec3f = [0.0, 0.0, -1]
+# this is model space which is -1..1. This also needs to be normalised
+# so the dot-product with normals is 0..1
+let light_dir: Vec3f = normalised([0.0, 0.0, -1])
 
 for face in model.faces:
   # assume all faces are triangles. Recall also that the obj file format uses
@@ -43,3 +44,34 @@ for face in model.faces:
     im.triangle(sa, sb, sc, zbuffer, [c, c, c, 255])
 
 im.write("outputs/lesson_03a.pam")
+
+# now for the texture mapping
+let texture = load_texture("data/african_head.pam")
+
+# re-init the image and zbuffer
+im.init()
+zbuffer.init()
+
+for face in model.faces:
+  # assume all faces are triangles. Recall also that the obj file format uses
+  # 1-indexing
+  let a = model.v[face.v_idxes[0]-1]
+  let b = model.v[face.v_idxes[1]-1]
+  let c = model.v[face.v_idxes[2]-1]
+
+  # texture coordinates
+  let ta = model.vt[face.vt_idxes[0]-1]
+  let tb = model.vt[face.vt_idxes[1]-1]
+  let tc = model.vt[face.vt_idxes[2]-1]
+
+  let sa = to_screenspace(a)
+  let sb = to_screenspace(b)
+  let sc = to_screenspace(c)
+
+  # compute triangle's normal by cross a-b and a-c
+  let normal = (c-a).cross(b-c).normalised()
+  let intensity = normal.dot(light_dir)
+  if intensity > 0:
+    im.triangle(sa, sb, sc, zbuffer, ta, tb, tc, intensity, texture)
+
+im.write("outputs/lesson_03b.pam")
