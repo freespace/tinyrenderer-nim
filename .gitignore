@@ -1,10 +1,11 @@
+# ignore all files without extensions
+*
+!/**/
+!*.*
+
 megatest*
 *.pam
 *.png
 *.swp
 nimcache/
 
-# ignore files starting with lesson_ and test_ *and* have no extension
-# which means they are most likely binaries
-lesson_[^\.]*
-test_[^\.]*
