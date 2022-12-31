@@ -1,16 +1,6 @@
 import std/strformat
 
-# expected to be RGBA
-type Pixel* = array[4, uint8]
-type Color* = Pixel
-
-# W, H: static[int] declares W and H to be integer type parameters which must be constant
-# expressions. The latter is enforced via static[]. Note that the image is stored row-major
-# so image[0] is the first row, i.e. indexing is (y, x) not (x, y). For this reason
-# it is strongly suggested to use set_pixel() to set colours as it will translate the (x, y)
-# into (col, row)
-type Image*[W, H: static[uint]] = array[H, array[W, Pixel]]
-
+import types
 # this has to come before so overloaded variants can find this underlying implementation
 proc set_pixel*(image: var Image, x: uint16, y: uint16, pixel: Pixel): void =
   let px = min(high(image[0]).uint16, x)
