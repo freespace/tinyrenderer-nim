@@ -139,8 +139,8 @@ proc barycentric2d(p: Vec2i, a, b, c: Vec2i): Vec3f =
 proc is_inside2d*(p, a, b, c: Vec2i): bool =
   let bcoords = barycentric2d(p, a, b, c)
 
-  for c in bcoords:
-    if c < 0:
+  for idx in 0..high(bcoords):
+    if bcoords[idx] < 0:
       return false
 
   return true
