@@ -51,7 +51,7 @@ for face in model.faces:
 
   # use of max here disables back-face culling but also lets us move the light source around
   # without faces disapearing
-  let intensity = max(normal.dot(light_dir), 0.3)
+  let intensity = max(normal.dot(light_dir), 0.2)
   im.triangle(sa, sb, sc, zbuffer, ta, tb, tc, intensity, texture)
 
 im.write("outputs/spaceship.pam")
