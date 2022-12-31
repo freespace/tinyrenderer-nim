@@ -120,23 +120,23 @@ proc load_texture*(input_path: string): Texture =
     let bytesread = io.readBytes(fh, buffer, 0, len(buffer))
     if bytesread < len(buffer):
       end_reached = true
-      break
 
     for idx, val in buffer:
-      current_row[pixel_idx][idx mod depth] = val
+      let channel = idx mod depth
 
-      # are we done with this pixel? This code triggers
-      # after every $depth number of values, e.g. for depth=3
-      # this triggers at idx = 2, i.e. after we have read 3 values
-      if (idx + 1) mod depth == 0:
-        # if yes, fill in the alpha value if needed
+      current_row[pixel_idx][channel] = val
+
+      if channel == depth - 1:
+        # if we just assigned to the last channel, move to the next
+        # pixel. If depth is less than 4, then fill in the alpha value
+        # as well
         if depth < 4:
           current_row[pixel_idx][3] = 255u8
 
         # move to the next pixel
         pixel_idx += 1
 
-      if pixel_idx >= high(current_row):
+      if pixel_idx > high(current_row):
         texture[row_idx] = current_row
         newSeq(current_row, width)
         pixel_idx = 0

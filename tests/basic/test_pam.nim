@@ -19,4 +19,9 @@ pam.set_pixel(im, width div 2, height div 2, [0u8, 0, 255, 255])
 pam.write_image(im, "/tmp/test.pam")
 
 let texture = load_texture("data/african_head.pam")
+assert len(texture) == 1024
+assert len(texture[0]) == 1024
 assert texture[0][0] == [0x58u8, 0x45, 0x37, 255]
+
+echo texture[^1][^1]
+assert texture[^1][^1] == [0x63u8, 0x4f, 0x46, 255]
